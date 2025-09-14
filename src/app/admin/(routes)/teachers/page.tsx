@@ -9,7 +9,7 @@ import { TeacherFilters } from "./_components/teacher-filters";
 import { TeacherFooter } from "./_components/teacher-footer";
 import { BulkActions } from "./_components/bulk-actions";
 
-export const dynamic = 'force-dynamic'; // Force dynamic rendering
+export const dynamic = "force-dynamic"; // Force dynamic rendering
 
 const TeachersPage = async ({
   searchParams,
@@ -29,51 +29,104 @@ const TeachersPage = async ({
     return redirect("/");
   }
 
-  const q = searchParams.q || '';
-  const sortBy = searchParams.sortBy || 'createdAt';
-  const sortOrder = searchParams.sortOrder || 'desc';
-  const page = parseInt(searchParams.page || '1');
-  const limit = parseInt(searchParams.limit || '10');
+  const sp = (await searchParams) ?? {}; // await the promise-like searchParams first
+
+  // Use nullish coalescing and explicit parseInt base
+  const q = (sp.q as string) ?? "";
+  const sortBy = (sp.sortBy as string) ?? "createdAt";
+  const sortOrder = (sp.sortOrder as string) ?? "desc";
+  const page = Number.parseInt((sp.page as string) ?? "1", 10);
+  const limit = Number.parseInt((sp.limit as string) ?? "10", 10);
 
   const params = new URLSearchParams();
-  params.set('page', page.toString());
-  params.set('limit', limit.toString());
-  params.set('sortBy', sortBy);
-  params.set('sortOrder', sortOrder);
-  if (q) params.set('q', q);
-  params.set('clerkUserId', userId);
+  params.set("page", page.toString());
+  params.set("limit", limit.toString());
+  params.set("sortBy", sortBy);
+  params.set("sortOrder", sortOrder);
+  if (q) params.set("q", q);
+  params.set("clerkUserId", userId);
 
-  const headersList = headers();
-  const host = headersList.get('host');
-  const protocol = host?.startsWith('localhost') ? 'http' : 'https';
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocol = host?.startsWith("localhost") ? "http" : "https";
   const baseUrl = `${protocol}://${host}`;
-  const cookie = headersList.get('cookie') || "";
+  const cookie = headersList.get("cookie") || "";
 
   const response = await fetch(`${baseUrl}/api/teachers?${params.toString()}`, {
     headers: {
-      'Cookie': cookie,
-    }
+      Cookie: cookie,
+    },
   });
 
-  if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+  if (
+    !response.ok ||
+    !response.headers.get("content-type")?.includes("application/json")
+  ) {
     const responseBody = await response.text();
-    console.error("API call to /api/teachers failed or returned non-JSON response. Status:", response.status);
+    console.error(
+      "API call to /api/teachers failed or returned non-JSON response. Status:",
+      response.status
+    );
     console.error("Response body:", responseBody);
-    throw new Error('Failed to fetch teacher data. Check server logs for details.');
+    throw new Error(
+      "Failed to fetch teacher data. Check server logs for details."
+    );
   }
-  const { data: fetchedUsers, totalCount, currentPage, perPage, totalPages } = await response.json();
 
-  const teachers: Teacher[] = (fetchedUsers || []).map((user: any) => ({
-    id: user.id,
-    name: user.email, // Placeholder for name
-    email: user.email,
-    role: user.role,
-    assignedCourses: ["Course X", "Course Y"], // Mock data
-    progress: Math.floor(Math.random() * 101), // Mock data
-    lastActivity: new Date(user.createdAt).toISOString(), // Placeholder
-    certificates: Math.floor(Math.random() * 5), // Mock data
-    createdAt: user.createdAt,
-  }));
+  const {
+    data: fetchedUsers,
+    totalCount,
+    currentPage,
+    perPage,
+    totalPages,
+  } = await response.json();
+
+  // Debug logging to see what data we're getting
+  console.log("🔍 Fetched users sample:", fetchedUsers?.[0]);
+
+  const teachers: Teacher[] = (fetchedUsers || []).map((user: any) => {
+    // Debug each user's data
+    console.log("👤 Processing user:", {
+      id: user.id,
+      clerkId: user.clerkId,
+      clerkUserId: user.clerkUserId, // Alternative field name
+      userId: user.userId, // Another alternative
+      email: user.email,
+    });
+
+    return {
+      id: user.id,
+      // Try multiple possible field names for the Clerk ID
+      clerkId: user.clerkId || user.clerkUserId || user.userId || user.id,
+      name: user.email, // Placeholder for name
+      email: user.email,
+      role: user.role,
+      assignedCourses: ["Course X", "Course Y"], // Mock data
+      progress: Math.floor(Math.random() * 101), // Mock data
+      lastActivity: new Date(user.createdAt).toISOString(), // Placeholder
+      certificates: Math.floor(Math.random() * 5), // Mock data
+      createdAt: user.createdAt,
+    };
+  });
+
+  // Filter out teachers without valid Clerk IDs and log warnings
+  const validTeachers = teachers.filter((teacher) => {
+    if (!teacher.clerkId || teacher.clerkId === teacher.id) {
+      console.warn(
+        `⚠️ Teacher ${teacher.email} (${teacher.id}) has no valid Clerk ID`
+      );
+      return false;
+    }
+    return true;
+  });
+
+  if (validTeachers.length !== teachers.length) {
+    console.warn(
+      `⚠️ ${
+        teachers.length - validTeachers.length
+      } teachers filtered out due to missing Clerk IDs`
+    );
+  }
 
   return (
     <div className="p-6">
@@ -89,7 +142,8 @@ const TeachersPage = async ({
         <BulkActions />
       </div>
       <div className="mt-6">
-        <DataTable columns={columns} data={teachers} />
+        {/* Use validTeachers instead of teachers */}
+        <DataTable columns={columns} data={validTeachers} />
       </div>
       <div className="mt-6">
         <TeacherFooter
