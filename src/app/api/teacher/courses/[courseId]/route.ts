@@ -8,8 +8,8 @@ export async function GET(
   { params }: { params: { courseId: string } }
 ) {
   try {
-    const { userId } = auth();
-    const { courseId } = params;
+    const { userId } = await auth();
+    const { courseId } = await params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
