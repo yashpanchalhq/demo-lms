@@ -14,6 +14,7 @@ type UserData = {
 };
 
 export async function POST(req: Request) {
+  console.log('Clerk webhook received');
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -63,6 +64,9 @@ export async function POST(req: Request) {
   if (eventType === 'user.created' || eventType === 'user.updated') {
     const { id: clerkId, email_addresses, public_metadata } = evt.data;
 
+    console.log(`Webhook event: ${eventType}, Clerk ID: ${clerkId}`);
+    console.log('Public metadata:', public_metadata);
+
     let role: 'ADMIN' | 'TEACHER' = 'TEACHER'; // Default role
     const incomingRole = public_metadata?.role;
 
@@ -78,6 +82,8 @@ export async function POST(req: Request) {
       ...(eventType === 'user.created' && { createdAt: new Date().toISOString() }),
       updatedAt: new Date().toISOString(),
     };
+
+    console.log('User data for upsert:', userData);
 
     const supabase = getSupabaseClient();
 
@@ -99,6 +105,7 @@ export async function POST(req: Request) {
       }
 
       console.log(`Successfully ${eventType === 'user.created' ? 'created' : 'updated'} user:`, clerkId);
+      console.log('Upsert result data:', data);
     } catch (dbError) {
       console.error('Database operation failed:', dbError);
       return new NextResponse('Database operation failed', { status: 500 });
