@@ -65,5 +65,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create schedule entry" }, { status: 500 });
   }
 
+  // Create an announcement for the new schedule entry
+  const announcementTitle = `New Session: ${title}`;
+  const announcementBody = `A new session has been scheduled:
+Title: ${title}
+Description: ${description || 'N/A'}
+Start: ${new Date(start_time).toLocaleString()}
+End: ${new Date(end_time).toLocaleString()}
+Location: ${location || 'N/A'}
+Mode: ${mode || 'N/A'}`;
+
+  const { error: announcementError } = await supabase
+    .from("announcements")
+    .insert([{
+      course_id: course_id || null, // If schedule is tied to a course
+      author_id: userId,
+      title: announcementTitle,
+      body: announcementBody,
+      // attachment_url: null, // No attachment for schedule announcements
+      // attachment_meta: null,
+      // expires_at: null, // Or set an expiry based on session end time
+    }]);
+
+  if (announcementError) {
+    console.error("Error creating announcement for schedule:", announcementError);
+    // Do not block schedule creation if announcement fails
+  }
+
   return NextResponse.json(data);
 }
