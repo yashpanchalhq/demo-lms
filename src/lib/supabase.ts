@@ -146,18 +146,21 @@ export type Database = {
           user_id: string;
           course_id: string;
           created_at: string;
+          role: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           course_id: string;
           created_at?: string;
+          role?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           course_id?: string;
           created_at?: string;
+          role?: string;
         };
       };
       MuxData: {
