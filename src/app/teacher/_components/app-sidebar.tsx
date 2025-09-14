@@ -71,6 +71,11 @@ const data = {
       url: "/teacher/announcements",
       icon: IconChartBar,
     },
+    {
+      title: "Available Courses",
+      url: "/teacher/available-courses",
+      icon: IconFolder,
+    },
   ],
   navClouds: [
     {
