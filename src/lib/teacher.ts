@@ -115,16 +115,34 @@ export async function getCourseWithModules(courseId: string, userId: string) {
   const internalUserId = user.id;
 
   // 2. Define the expected return type from the query
+  type ChapterWithVideo = Chapter & {
+    "videoUrl": string | null; // Add videoUrl to Chapter type
+  };
+
   type CourseWithModules = Course & {
-    modules: Chapter[];
+    modules: ChapterWithVideo[]; // Use ChapterWithVideo
   };
 
   // 3. Get course data with chapters, and explicitly type the result
   const { data: courseData, error: courseError } = await supabase
     .from("Course")
-    .select("*, modules:Chapter(*)")
+    .select(`
+      *,
+      modules:Chapter(
+        id,
+        title,
+        description,
+        "videoUrl",
+        position,
+        "isPublished",
+        "isFree",
+        "courseId",
+        "createdAt",
+        "updatedAt"
+      )
+    `)
     .eq("id", courseId)
-    .single<CourseWithModules>(); // <--- Explicitly type the result here
+    .single<CourseWithModules>();
 
   if (courseError) {
     console.error("Error fetching course:", courseError);
@@ -132,11 +150,20 @@ export async function getCourseWithModules(courseId: string, userId: string) {
   }
   if (!courseData) return null;
 
-  // 4. Now, `courseData.modules` is correctly typed as Chapter[]
+  // 4. Transform modules to match the expected Module type in CoursePlayerPage
   const modules = courseData.modules || [];
   modules.sort((a, b) => a.position - b.position);
 
-  const moduleIds = modules.map((m) => m.id);
+  const transformedModules = modules.map(m => ({
+    id: m.id,
+    title: m.title,
+    content: m.videoUrl, // Map videoUrl to content
+    moduleType: m.videoUrl ? "VIDEO" : "TEXT", // Infer moduleType
+    quizQuestions: null, // Placeholder, assuming no direct quiz questions in Chapter
+    progress: null, // Will be populated later
+  }));
+
+  const moduleIds = transformedModules.map((m) => m.id);
 
   // 5. Get user progress for these modules
   type UserProgressSelect = {
@@ -157,7 +184,7 @@ export async function getCourseWithModules(courseId: string, userId: string) {
   }
 
   const progressMap = new Map(progress?.map((p) => [p.chapterId, p]) ?? []);
-  const modulesWithProgress = modules.map((m) => ({
+  const modulesWithProgress = transformedModules.map((m) => ({
     ...m,
     progress: progressMap.get(m.id) ?? null,
   }));
