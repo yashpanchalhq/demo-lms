@@ -128,3 +128,80 @@
  width: 100% !important;
  box-sizing: border-box;
 }
+
+/* Dark mode overrides for react-big-calendar */
+.dark {
+  .rbc-calendar {
+    background-color: var(--background); /* Use theme background */
+    color: var(--foreground); /* Use theme foreground */
+  }
+
+  .rbc-header {
+    color: var(--muted-foreground);
+    border-bottom-color: var(--border);
+  }
+
+  .rbc-month-view,
+  .rbc-time-view,
+  .rbc-agenda-view {
+    border-color: var(--border);
+  }
+
+  .rbc-day-bg {
+    background-color: var(--background);
+  }
+
+  .rbc-off-range-bg {
+    background-color: var(--muted); /* For days outside the current month */
+  }
+
+  .rbc-today {
+    background-color: var(--muted); /* Highlight today */
+  }
+
+  .rbc-row-segment .rbc-event-content {
+    color: var(--primary-foreground); /* Event text color */
+  }
+
+  .rbc-event {
+    background-color: var(--primary); /* Event background color */
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .rbc-event.rbc-selected {
+    background-color: var(--accent); /* Selected event */
+    border-color: var(--accent);
+  }
+
+  .rbc-toolbar button {
+    color: var(--foreground);
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .rbc-toolbar button:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  .rbc-active {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+  }
+
+  .rbc-time-header-content {
+    border-color: var(--border);
+  }
+
+  .rbc-time-content > * + * > * {
+    border-left-color: var(--border);
+  }
+
+  .rbc-time-content > div {
+    border-top-color: var(--border);
+  }
+
+  .rbc-current-time-indicator {
+    background-color: var(--destructive); /* Red line for current time */
+  }
+}
