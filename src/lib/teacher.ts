@@ -370,10 +370,6 @@ export async function getInProgressModules(
   }
 
   // 4. Get all completed chapter IDs for the user
-  type UserProgressChapterIdSelect = {
-    chapterId: string;
-  };
-
   const { data: userProgress, error: progressError } = await supabase
     .from("UserProgress")
     .select("chapterId")
@@ -407,4 +403,33 @@ export async function getInProgressModules(
     total: pendingModules.length,
     items: items,
   };
+}
+
+export async function getAnnouncementViewReport() {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("announcement_views")
+    .select(
+      `
+      announcement_id,
+      announcements ( 
+        title
+      ),
+      count(id)
+      `
+    )
+    .group("announcement_id, announcements.title")
+    .order("count", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching announcement view report:", error);
+    return [];
+  }
+
+  return data.map((row: any) => ({
+    announcementId: row.announcement_id,
+    announcementTitle: row.announcements?.title || "Unknown Title",
+    viewCount: row.count,
+  }));
 }
