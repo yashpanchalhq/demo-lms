@@ -17,7 +17,7 @@ type ModuleProgress = {
 type Module = {
   id: string;
   title: string;
-  content: string | null; // Assuming content can be video URL, PDF URL, or markdown
+  content: string | null; // This will now be the videoUrl
   moduleType: "VIDEO" | "QUIZ" | "TEXT" | "PDF"; // Example types
   quizQuestions: any | null; // JSONB for questions
   progress: ModuleProgress | null;
@@ -27,6 +27,8 @@ type CourseData = {
   course: {
     id: string;
     title: string;
+    description: string | null; // Add description
+    imageUrl: string | null; // Add imageUrl
   };
   modules: Module[];
 };
@@ -134,7 +136,20 @@ const CoursePlayerPage = () => {
       <div className="w-3/4 p-6 overflow-y-auto">
         {activeModule ? (
           <div>
-            <h1 className="text-3xl font-bold mb-4">{activeModule.title}</h1>
+            <h1 className="text-3xl font-bold mb-4">{courseData.course.title}</h1>
+            {courseData.course.imageUrl && (
+              <img
+                src={courseData.course.imageUrl}
+                alt={courseData.course.title}
+                className="w-full rounded-lg mb-4"
+              />
+            )}
+            {courseData.course.description && (
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                {courseData.course.description}
+              </p>
+            )}
+            <h2 className="text-2xl font-bold mb-4">{activeModule.title}</h2>
             <Card>
               <CardContent className="p-6">
                 {/* Render module content based on type */}
