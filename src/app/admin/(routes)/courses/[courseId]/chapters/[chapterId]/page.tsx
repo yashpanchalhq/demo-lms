@@ -28,11 +28,14 @@ type MuxData = {
   playbackId: string;
 };
 
-const ChapterIdPage = async ({
-  params,
-}: {
-  params: { courseId: string; chapterId: string };
-}) => {
+interface ChapterIdPageProps {
+  params: {
+    courseId: string;
+    chapterId: string;
+  };
+}
+
+const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
   const { userId } = await auth();
   if (!userId) {
     return redirect("/");
