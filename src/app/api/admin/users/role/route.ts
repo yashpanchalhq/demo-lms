@@ -1,71 +1,88 @@
-import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export async function POST(req: Request) {
+const FALLBACK_ADMINS = (process.env.ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
+
+/** helper: is caller an admin (checks your User table role first; fallback to env list) */
+async function callerIsAdmin(supabase: any, callerId: string) {
+  if (!callerId) return false;
+
   try {
-    const { userId: clerkUserId } = getAuth(req);
+    const { data: u, error } = await supabase
+      .from("User")
+      .select("role, id")
+      .eq("clerkId", callerId)
+      .limit(1)
+      .maybeSingle();
 
-    if (!clerkUserId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    console.log("🔍 Admin check:", { callerId, foundUser: u, error });
+
+    if (!error && u?.role && ["ADMIN", "admin", "owner", "principal", "technical", "tech"].includes(String(u.role))) {
+      return true;
     }
+  } catch (err) {
+    console.warn("callerIsAdmin: DB lookup failed", err);
+  }
 
-    const supabase = getSupabaseClient();
+  // fallback to env list
+  if (FALLBACK_ADMINS.includes(callerId)) {
+    console.log("✅ Admin access granted via FALLBACK_ADMINS");
+    return true;
+  }
 
-    // Check if the requesting user is an admin
-    const { data: requestingUser, error: requestingUserError } = await supabase
-      .from('User')
-      .select('role')
-      .eq('clerkId', clerkUserId)
-      .single();
+  return false;
+}
 
-    if (requestingUserError || requestingUser?.role !== 'ADMIN') {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
+export async function POST(req: Request) {
+  console.log("📧 Role assignment request received");
 
-    const { id, role } = await req.json(); // id is the Supabase User ID, role is the new role
+  const { userId: callerId } = await auth();
+  if (!callerId) {
+    console.error("❌ No caller ID");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    if (!id || !role) {
-      return new NextResponse("Missing user ID or role", { status: 400 });
-    }
+  console.log("👤 Caller ID:", callerId);
 
-    // Fetch the user's current role for audit logging
-    const { data: userToUpdate, error: fetchUserError } = await supabase
-      .from('User')
-      .select('role')
-      .eq('id', id)
-      .single();
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    console.error("❌ No Supabase client available on server");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
 
-    if (fetchUserError) {
-      console.error("[API_ADMIN_USERS_ROLE_POST] Fetch User Error:", fetchUserError);
-      return new NextResponse("Internal Error", { status: 500 });
-    }
+  const isAdmin = await callerIsAdmin(supabase as any, callerId);
+  if (!isAdmin) {
+    console.error("❌ Not admin:", callerId);
+    return NextResponse.json({ error: "Forbidden - not admin" }, { status: 403 });
+  }
 
-    const previousRole = userToUpdate?.role;
+  console.log("✅ Admin access confirmed");
 
-    // Update the user's role in Supabase
-    const { data: updatedUser, error: updateError } = await supabase
-      .from('User')
-      .update({ role: role })
-      .eq('id', id)
-      .select()
-      .single();
+  const body = await req.json().catch(() => ({}));
+  const { targetUserId, role } = body;
 
-    if (updateError) {
-      console.error("[API_ADMIN_USERS_ROLE_POST] Update Error:", updateError);
-      return new NextResponse("Internal Error", { status: 500 });
-    }
+  if (!targetUserId || !role) {
+    return NextResponse.json({ error: "Missing targetUserId or role" }, { status: 400 });
+  }
 
-    // Log audit for role update
-    await supabase.from('AdminAudit').insert({
-      adminId: clerkUserId,
-      action: 'user_role_updated',
-      meta: { user_id: id, previous_role: previousRole, new_role: role },
+  if (!["ADMIN", "TEACHER"].includes(role)) {
+    return NextResponse.json({ error: "Invalid role. Must be 'ADMIN' or 'TEACHER'" }, { status: 400 });
+  }
+
+  try {
+    const user = await clerkClient.users.updateUser(targetUserId, {
+      publicMetadata: {
+        role: role,
+      },
     });
-
-    return NextResponse.json(updatedUser);
-  } catch (error) {
-    console.error("[API_ADMIN_USERS_ROLE_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.log(`✅ User ${targetUserId} role updated to ${role} in Clerk public metadata.`);
+    return NextResponse.json({ success: true, user: { id: user.id, publicMetadata: user.publicMetadata } });
+  } catch (error: any) {
+    console.error(`❌ Error assigning role to user ${targetUserId}:`, error);
+    return NextResponse.json({
+      error: `Failed to update user role: ${error.message || error.toString()}`,
+      stack: error?.stack,
+    }, { status: 500 });
   }
 }
