@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     let query = supabase
       .from('User')
-      .select('id, email, role, createdAt', { count: 'exact' })
+      .select('id, clerkId, email, role, createdAt', { count: 'exact' }) // Added 'id' field
       .or('role.eq.TEACHER,role.eq.ADMIN');
 
     if (q) {
@@ -53,12 +53,41 @@ export async function GET(req: Request) {
       return new NextResponse("Internal Error", { status: 500 });
     }
 
+    // Debug logging and data validation
+    console.log("🔍 API: Fetched teachers count:", teachers?.length || 0);
+    
+    // Filter and validate teachers data
+    const validTeachers = teachers?.filter((teacher: any) => {
+      const hasValidClerkId = teacher.clerkId && teacher.clerkId.trim() !== '';
+      
+      if (!hasValidClerkId) {
+        console.warn(`⚠️ API: Teacher ${teacher.email} (DB ID: ${teacher.id}) has missing/invalid clerkId:`, teacher.clerkId);
+      }
+      
+      return hasValidClerkId;
+    }) || [];
+
+    // Log sample data for debugging
+    if (validTeachers.length > 0) {
+      console.log("✅ API: Sample valid teacher:", {
+        id: validTeachers[0].id,
+        clerkId: validTeachers[0].clerkId,
+        email: validTeachers[0].email,
+        role: validTeachers[0].role
+      });
+    }
+
+    if (validTeachers.length !== teachers?.length) {
+      console.warn(`⚠️ API: Filtered out ${(teachers?.length || 0) - validTeachers.length} teachers with invalid clerkId`);
+    }
+
     return NextResponse.json({
-      data: teachers,
-      totalCount: count,
+      data: validTeachers, // Return only valid teachers
+      totalCount: count, // Keep original count for pagination
+      validCount: validTeachers.length, // Add valid count for reference
       currentPage: page,
       perPage: limit,
-      totalPages: Math.ceil(count / limit),
+      totalPages: Math.ceil((count || 0) / limit),
     });
   } catch (error) {
     console.error("[API_TEACHERS_GET]", error);
