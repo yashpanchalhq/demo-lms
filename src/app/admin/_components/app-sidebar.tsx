@@ -51,6 +51,11 @@ const data = {
       icon: IconUsers,
     },
     {
+      title: "Bulk Enroll",
+      url: "/admin/bulk-enroll",
+      icon: IconUsers,
+    },
+    {
       title: "Reports",
       url: "/admin/reports",
       icon: IconReport,
