@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       const { data: enrollment, error } = await supabase
         .from("Enrollment")
         .insert([
-          { user_id: internalTeacherId, course_id: courseId }
+          { userId: internalTeacherId, courseId }
         ])
         .select()
         .single();

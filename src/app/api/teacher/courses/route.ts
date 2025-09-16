@@ -28,15 +28,15 @@ export async function GET(req: NextRequest) {
 
     const { data: enrollments, error: enrollmentsError } = await supabase
       .from('Enrollment')
-      .select('course_id')
-      .eq('user_id', internalUserId); // <--- Use internalUserId here
+      .select('courseId')
+      .eq('userId', internalUserId); // <--- Use internalUserId here
 
     if (enrollmentsError) {
       console.error("[TEACHER_COURSES_GET] Error fetching enrollments:", enrollmentsError);
       return new NextResponse("Internal Error", { status: 500 });
     }
 
-    const courseIds = enrollments.map((enrollment) => enrollment.course_id).filter(Boolean) as string[];
+    const courseIds = enrollments.map((enrollment) => enrollment.courseId).filter(Boolean) as string[];
 
     if (courseIds.length === 0) {
       return NextResponse.json([]);

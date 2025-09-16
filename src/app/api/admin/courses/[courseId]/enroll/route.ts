@@ -83,9 +83,9 @@ export async function POST(
       .from('Enrollment')
       .insert([
         {
-          user_id: teacherId,
-          course_id: courseId,
-          role: 'admin_enrolled', // Admin enrolls a teacher
+          userId: teacherId,
+          courseId: courseId,
+          status: 'active', // Admin enrolls a teacher
         },
       ])
       .select()

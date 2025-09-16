@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const { data: enrollment, error } = await supabase
       .from("Enrollment")
       .insert([
-        { user_id: internalUserId, course_id: courseId }
+        { userId: internalUserId, courseId }
       ])
       .select()
       .single();
