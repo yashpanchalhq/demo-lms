@@ -62,8 +62,10 @@ export const BrandingCard = ({ initialData }: BrandingCardProps) => {
           <FileUpload
             endpoint="courseImage" // Reusing courseImage endpoint for now
             onChangeAction={(url) => {
-              setLogoUrl(url);
-              handleSave({ logoUrl: url });
+              if (url) {
+                setLogoUrl(url);
+                handleSave({ logoUrl: url });
+              }
             }}
           />
           {logoUrl && (
@@ -94,8 +96,10 @@ export const BrandingCard = ({ initialData }: BrandingCardProps) => {
           <FileUpload
             endpoint="courseImage" // Reusing courseImage endpoint for now
             onChangeAction={(url) => {
-              setFaviconUrl(url);
-              handleSave({ faviconUrl: url });
+              if (url) {
+                setFaviconUrl(url);
+                handleSave({ faviconUrl: url });
+              }
             }}
           />
           {faviconUrl && (
