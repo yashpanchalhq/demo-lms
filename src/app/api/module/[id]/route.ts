@@ -3,10 +3,10 @@ import { getSupabaseClient } from "@/lib/supabase";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     if (!id) {
       return NextResponse.json({ error: 'Module ID is required' }, { status: 400 });
     }
