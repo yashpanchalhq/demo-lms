@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
@@ -11,16 +11,16 @@ async function checkIsAdmin(userId: string): Promise<boolean> {
   return false; 
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = auth();
+export async function PUT(req: NextRequest, context: any) {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
-  const { data: existing } = await supabase.from("announcements").select("author_id").eq("id", params.id).single();
+  const { data: existing } = await supabase.from("announcements").select("author_id").eq("id", context.params.id).single();
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // check permission: author or admin
-  const isAuthor = existing.author_id === userId;
+  const isAuthor = (existing as any).author_id === userId;
   const isAdmin = await checkIsAdmin(userId); // implement or inline list for demo
   if (!isAuthor && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -32,7 +32,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
   const { data, error } = await (supabase as any).from("announcements")
     .update(updates)
-    .eq("id", params.id)
+    .eq("id", context.params.id)
     .select()
     .single();
 
@@ -43,23 +43,23 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(data);
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = auth();
+export async function DELETE(req: NextRequest, context: any) {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
-  const { data: existing } = await supabase.from("announcements").select("author_id").eq("id", params.id).single();
+  const { data: existing } = await supabase.from("announcements").select("author_id").eq("id", context.params.id).single();
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // check permission: author or admin
-  const isAuthor = existing.author_id === userId;
+  const isAuthor = (existing as any).author_id === userId;
   const isAdmin = await checkIsAdmin(userId); // Assuming checkIsAdmin is available
   if (!isAuthor && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { error } = await supabase
     .from("announcements")
     .delete()
-    .eq("id", params.id);
+    .eq("id", context.params.id);
 
   if (error) {
     console.error("announcement delete error", error);
