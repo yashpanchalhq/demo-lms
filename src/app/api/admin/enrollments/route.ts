@@ -29,7 +29,8 @@ async function callerIsAdmin(supabase: any, callerId: string) {
 
   // 3) Optional: check Clerk user's publicMetadata/roles if you store roles in Clerk
   try {
-    const clerkUser = await clerkClient.users.getUser(callerId);
+    const clerk = await clerkClient();
+    const clerkUser = await clerk.users.getUser(callerId);
     const publicMeta = (clerkUser?.publicMetadata ?? {}) as any;
     if (publicMeta?.role && ["admin","owner"].includes(String(publicMeta.role).toLowerCase())) {
       return true;
@@ -128,11 +129,12 @@ export async function POST(req: Request) {
   if (!clerkId && (teacherEmail || (body as any).teacherEmail)) {
     const email = teacherEmail ?? (body as any).teacherEmail;
     try {
-      const users = await clerkClient.users.getUserList({ emailAddress: [email] });
-      console.log("🔍 Clerk lookup by email:", { email, foundUsers: users?.length });
+      const clerk = await clerkClient();
+      const users = await clerk.users.getUserList({ emailAddress: [email] });
+      console.log("🔍 Clerk lookup by email:", { email, foundUsers: users?.data?.length });
       
-      if (users?.length) {
-        clerkId = users[0].id;
+      if (users?.data?.length) {
+        clerkId = users.data[0].id;
         
         // Also try to get the database ID
         if (clerkId && !teacherDatabaseId) {
