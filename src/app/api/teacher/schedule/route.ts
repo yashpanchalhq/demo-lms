@@ -9,13 +9,13 @@ async function checkIsAdmin(userId: string): Promise<boolean> {
 }
 
 export async function GET(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
-    .from("teacher_schedule") // Assuming a table named 'teacher_schedule'
+    .from("teacher_schedule" as any) // Assuming a table named 'teacher_schedule'
     .select("*" )
     .eq("teacher_id", userId) // Assuming schedule entries are linked to teacher_id
     .order("start_time", { ascending: true });
@@ -29,14 +29,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const isAdmin = await checkIsAdmin(userId);
   if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
-  const { title, description, start_time, end_time, location, mode } = body;
+  const { title, description, start_time, end_time, location, mode, course_id } = body;
 
   if (!title || !start_time || !end_time) {
     return NextResponse.json({ error: "Missing required fields: title, start_time, end_time" }, { status: 400 });
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
-    .from("teacher_schedule")
+    .from("teacher_schedule" as any)
     .insert([
       {
         teacher_id: userId, // Link to the admin user creating it
@@ -79,7 +79,7 @@ Mode: ${mode || 'N/A'}`;
     .from("announcements")
     .insert([{
       course_id: course_id || null, // If schedule is tied to a course
-      author_id: userId,
+      teacher_id: userId,
       title: announcementTitle,
       body: announcementBody,
       // attachment_url: null, // No attachment for schedule announcements
