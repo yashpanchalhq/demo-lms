@@ -1,15 +1,18 @@
 
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseClient, Database } from "@/lib/supabase";
+import { Tables } from "@/lib/database.types";
+
+interface ChapterRow extends Tables<'Chapter'> {}
 
 export async function PATCH(
-  req: Request,
-  { params }: { params: { courseId: string } }
+  req: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = getAuth(req);
-    const { courseId } = params;
+    const { courseId } = context.params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -34,7 +37,7 @@ export async function PATCH(
     }
 
     const hasPublishedChapter = course.Chapter.some(
-      (chapter) => chapter.isPublished
+      (chapter: ChapterRow) => chapter.isPublished
     );
 
     const requiredFields = [
