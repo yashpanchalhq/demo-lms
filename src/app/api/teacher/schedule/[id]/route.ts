@@ -8,17 +8,17 @@ async function checkIsAdmin(userId: string): Promise<boolean> {
   return false; 
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = auth();
+export async function PUT(req: Request, context: any) {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
 
   // Verify ownership or admin status
   const { data: existing, error: fetchError } = await supabase
-    .from("teacher_schedule")
+    .from("teacher_schedule" as any)
     .select("teacher_id")
-    .eq("id", params.id)
+    .eq("id", context.params.id) // Corrected access to id
     .single();
 
   if (fetchError || !existing) {
@@ -26,7 +26,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ error: "Schedule entry not found" }, { status: 404 });
   }
 
-  const isOwner = existing.teacher_id === userId;
+  // Assert that existing is of the expected type after the null check
+  const typedExisting = existing as any;
+
+  const isOwner = typedExisting.teacher_id === userId;
   const isAdmin = await checkIsAdmin(userId);
 
   if (!isOwner && !isAdmin) {
@@ -42,9 +45,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   });
 
   const { data, error } = await supabase
-    .from("teacher_schedule")
+    .from("teacher_schedule" as any)
     .update(updates)
-    .eq("id", params.id)
+    .eq("id", context.params.id) // Corrected access to id
     .select()
     .single();
 
@@ -56,17 +59,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(data);
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = auth();
+export async function DELETE(req: Request, context: any) {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
 
   // Verify ownership or admin status
   const { data: existing, error: fetchError } = await supabase
-    .from("teacher_schedule")
+    .from("teacher_schedule" as any)
     .select("teacher_id")
-    .eq("id", params.id)
+    .eq("id", context.params.id) // Corrected access to id
     .single();
 
   if (fetchError || !existing) {
@@ -74,7 +77,10 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Schedule entry not found" }, { status: 404 });
   }
 
-  const isOwner = existing.teacher_id === userId;
+  // Assert that existing is of the expected type after the null check
+  const typedExisting = existing as any;
+
+  const isOwner = typedExisting.teacher_id === userId;
   const isAdmin = await checkIsAdmin(userId);
 
   if (!isOwner && !isAdmin) {
@@ -82,9 +88,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 
   const { error } = await supabase
-    .from("teacher_schedule")
+    .from("teacher_schedule" as any)
     .delete()
-    .eq("id", params.id);
+    .eq("id", context.params.id); // Corrected access to id
 
   if (error) {
     console.error("Schedule delete error:", error);
