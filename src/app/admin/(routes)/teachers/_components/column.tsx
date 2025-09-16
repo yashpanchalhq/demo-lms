@@ -52,7 +52,7 @@ export type Teacher = {
   name: string;
   email: string;
   role: string;
-  assignedCourses: string[];
+  assignedCourses: number; // Changed from string[] to number
   progress: number;
   lastActivity: string;
   certificates: number;
