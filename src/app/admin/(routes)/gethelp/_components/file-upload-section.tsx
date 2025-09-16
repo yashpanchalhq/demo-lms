@@ -9,9 +9,11 @@ import toast from "react-hot-toast";
 export const FileUploadSection = () => {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
-  const handleFileUpload = (url: string) => {
-    setUploadedFiles((prev) => [...prev, url]);
-    toast.success("File uploaded successfully!");
+  const handleFileUpload = (url: string | undefined) => {
+    if (url) {
+      setUploadedFiles((prev) => [...prev, url]);
+      toast.success("File uploaded successfully!");
+    }
   };
 
   return (
