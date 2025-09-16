@@ -17,6 +17,7 @@ export type QuizItem = {
   availableFrom?: string | null;
   availableTo?: string | null;
   isActive?: boolean | null;
+  attemptsLeft?: number | null;
 };
 
 export default function QuizzesList({ initialQuizzes }: { initialQuizzes: QuizItem[] }) {
