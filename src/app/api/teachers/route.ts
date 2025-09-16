@@ -31,8 +31,17 @@ export async function GET(req: Request) {
 
     let query = supabase
       .from('User')
-      .select('id, clerkId, email, role, createdAt', { count: 'exact' }) // Added 'id' field
-      .or('role.eq.TEACHER,role.eq.ADMIN');
+      .select(`
+        id,
+        clerkId,
+        email,
+        role,
+        createdAt,
+        enrollments(course_id),
+        UserProgress(updatedAt),
+        Certificate(id)
+      `, { count: 'exact' })
+      .eq('role', 'TEACHER');
 
     if (q) {
       query = query.ilike('email', `%${q}%`);
@@ -59,11 +68,11 @@ export async function GET(req: Request) {
     // Filter and validate teachers data
     const validTeachers = teachers?.filter((teacher: any) => {
       const hasValidClerkId = teacher.clerkId && teacher.clerkId.trim() !== '';
-      
+
       if (!hasValidClerkId) {
         console.warn(`⚠️ API: Teacher ${teacher.email} (DB ID: ${teacher.id}) has missing/invalid clerkId:`, teacher.clerkId);
       }
-      
+
       return hasValidClerkId;
     }) || [];
 
@@ -81,10 +90,46 @@ export async function GET(req: Request) {
       console.warn(`⚠️ API: Filtered out ${(teachers?.length || 0) - validTeachers.length} teachers with invalid clerkId`);
     }
 
+    const processedTeachers = validTeachers.map((teacher: any) => {
+      const assignedCoursesCount = teacher.enrollments?.length || 0;
+      const certificatesCount = teacher.Certificate?.length || 0;
+
+      // Calculate last activity
+      let lastActivityDate = new Date(teacher.createdAt);
+      if (teacher.UserProgress && teacher.UserProgress.length > 0) {
+        const latestProgressUpdate = teacher.UserProgress.reduce((latest: any, current: any) => {
+          return new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest;
+        });
+        if (new Date(latestProgressUpdate.updatedAt) > lastActivityDate) {
+          lastActivityDate = new Date(latestProgressUpdate.updatedAt);
+        }
+      }
+      if (teacher.enrollments && teacher.enrollments.length > 0) {
+        const latestEnrollment = teacher.enrollments.reduce((latest: any, current: any) => {
+          return new Date(current.enrolled_at) > new Date(latest.enrolled_at) ? current : latest;
+        });
+        if (new Date(latestEnrollment.enrolled_at) > lastActivityDate) {
+          lastActivityDate = new Date(latestEnrollment.enrolled_at);
+        }
+      }
+
+      // For progress, a simple count of completed items for now.
+      // A more accurate progress would require fetching total chapters per course.
+      const progress = teacher.UserProgress?.length || 0; // Count of completed chapters
+
+      return {
+        ...teacher,
+        assignedCourses: assignedCoursesCount,
+        progress: progress,
+        lastActivity: lastActivityDate.toISOString(), // Keep ISO string for now, format in frontend
+        certificates: certificatesCount,
+      };
+    });
+
     return NextResponse.json({
-      data: validTeachers, // Return only valid teachers
-      totalCount: count, // Keep original count for pagination
-      validCount: validTeachers.length, // Add valid count for reference
+      data: processedTeachers, // Return processed teachers
+      totalCount: count,
+      validCount: processedTeachers.length,
       currentPage: page,
       perPage: limit,
       totalPages: Math.ceil((count || 0) / limit),
