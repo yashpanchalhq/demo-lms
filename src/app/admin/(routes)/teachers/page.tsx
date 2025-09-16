@@ -87,26 +87,21 @@ const TeachersPage = async ({
   console.log("🔍 Fetched users sample:", fetchedUsers?.[0]);
 
   const teachers: Teacher[] = (fetchedUsers || []).map((user: any) => {
-    // Debug each user's data
-    console.log("👤 Processing user:", {
-      id: user.id,
-      clerkId: user.clerkId,
-      clerkUserId: user.clerkUserId, // Alternative field name
-      userId: user.userId, // Another alternative
-      email: user.email,
-    });
+    // Format lastActivity for display
+    const formattedLastActivity = user.lastActivity
+      ? new Date(user.lastActivity).toLocaleString()
+      : "N/A";
 
     return {
       id: user.id,
-      // Try multiple possible field names for the Clerk ID
-      clerkId: user.clerkId || user.clerkUserId || user.userId || user.id,
-      name: user.email, // Placeholder for name
+      clerkId: user.clerkId,
+      name: user.email, // Using email as name for now, can be updated if a name field is added to User
       email: user.email,
       role: user.role,
-      assignedCourses: ["Course X", "Course Y"], // Mock data
-      progress: Math.floor(Math.random() * 101), // Mock data
-      lastActivity: new Date(user.createdAt).toISOString(), // Placeholder
-      certificates: Math.floor(Math.random() * 5), // Mock data
+      assignedCourses: user.assignedCourses,
+      progress: user.progress,
+      lastActivity: formattedLastActivity,
+      certificates: user.certificates,
       createdAt: user.createdAt,
     };
   });
