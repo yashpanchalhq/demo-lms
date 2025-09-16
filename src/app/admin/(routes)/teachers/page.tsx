@@ -11,17 +11,19 @@ import { BulkActions } from "./_components/bulk-actions";
 
 export const dynamic = "force-dynamic"; // Force dynamic rendering
 
-const TeachersPage = async ({
-  searchParams,
-}: {
+interface TeachersPageProps {
   searchParams: {
     q?: string;
     sortBy?: string;
     sortOrder?: string;
     page?: string;
     limit?: string;
-  };
-}) => {
+  } & Promise<any>;
+}
+
+const TeachersPage = async ({
+  searchParams,
+}: TeachersPageProps) => {
   const user = await currentUser();
   const userId = user?.id;
 
