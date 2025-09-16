@@ -1,5 +1,6 @@
 import { IconBadge } from "@/components/icon-badge";
 import { getSupabaseClient } from "@/lib/supabase";
+import { ChapterWithAllDetails } from "@/lib/teacher";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   CircleDollarSign,
@@ -18,52 +19,128 @@ import { ChapterForm } from "./_components/chapter-form";
 import { Banner } from "@/components/banner";
 import { Action } from "./_components/action";
 
-export default async function CourseIDPage({
-  params,
-}: {
-  params: { courseId: string };
-}) {
+interface CourseFromDB {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  price: number | null;
+  isPublished: boolean;
+  categoryId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ChapterFromDB {
+  id: string;
+  courseId: string;
+  position: number;
+  isPublished: boolean;
+}
+
+interface AttachmentFromDB {
+  id: string;
+  courseId: string;
+  createdAt: string;
+  name: string;
+  url: string;
+}
+
+type Attachment = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+interface CourseWithDetails {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  price: number;
+  isPublished: boolean;
+  categoryId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  chapter: ChapterWithAllDetails[];
+  attachments: Attachment[];
+}
+
+interface PageProps {
+  params: Promise<{ courseId: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function CourseIDPage(
+  { params }: PageProps
+) {
+  const { courseId } = await params;
   const user = await currentUser();
   const userId = user?.id;
+
   if (!userId) {
     return redirect("/");
   }
 
   const supabase = getSupabaseClient();
 
-  const { data: course, error: courseError } = await supabase
+  const { data: course, error } = await supabase
     .from('Course')
     .select('*')
-    .eq('id', params.courseId)
+    .eq('id', courseId)
     .eq('userId', userId)
-    .single();
+    .single() as { data: CourseFromDB | null, error: any };
 
-  if (courseError || !course) {
+  if (error || !course) {
     return redirect("/");
   }
 
-  const { data: chapters, error: chaptersError } = await supabase
-    .from('Chapter')
-    .select('*')
-    .eq('courseId', params.courseId)
-    .order('position', { ascending: true });
+  const { data: chapters } = await supabase
+    .from("Chapter")
+    .select(`
+      id,
+      title,
+      description,
+      videoUrl,
+      position,
+      isPublished,
+      isFree,
+      courseId,
+      createdAt,
+      updatedAt
+    `)
+    .eq("courseId", courseId)
+    .order("position", { ascending: true }) as { data: ChapterWithAllDetails[] | null };
 
-  const { data: attachments, error: attachmentsError } = await supabase
-    .from('Attachment')
-    .select('*')
-    .eq('courseId', params.courseId)
-    .order('createdAt', { ascending: 'desc' });
+  const { data: attachments } = await supabase
+    .from("Attachment")
+    .select(`
+      id,
+      courseId,
+      createdAt,
+      name,
+      url
+    `)
+    .eq("courseId", courseId)
+    .order("createdAt", { ascending: false }) as { data: AttachmentFromDB[] | null };
 
-  const courseWithDetails = {
+  if (!course || typeof course !== "object") {
+    return redirect("/");
+  }
+
+  const courseWithDetails: CourseWithDetails = {
     ...course,
+    price: course.price || 0,
     chapter: chapters || [],
     attachments: attachments || [],
   };
 
   const { data: categories, error: categoriesError } = await supabase
-    .from('Category')
-    .select('*')
-    .order('name', { ascending: true });
+    .from("Category")
+    .select("*")
+    .order("name", { ascending: true });
 
   if (!categories) {
     return redirect("/");
@@ -99,7 +176,7 @@ export default async function CourseIDPage({
           </div>
           <Action
             disabled={!isComplete}
-            courseId={params.courseId}
+            courseId={courseId}
             isPublished={courseWithDetails.isPublished}
           />
         </div>
@@ -109,13 +186,22 @@ export default async function CourseIDPage({
               <IconBadge icon={LayoutDashboard} />
               <h2 className="text-xl">Customise your course</h2>
             </div>
-            <TitleForm initialData={courseWithDetails} courseId={courseWithDetails.id} />
-            <DescriptionForm initialData={courseWithDetails} courseId={courseWithDetails.id} />
-            <ImageForm initialData={courseWithDetails} courseId={courseWithDetails.id} />
+            <TitleForm
+              initialData={courseWithDetails}
+              courseId={courseWithDetails.id}
+            />
+            <DescriptionForm
+              initialData={courseWithDetails}
+              courseId={courseWithDetails.id}
+            />
+            <ImageForm
+              initialData={courseWithDetails}
+              courseId={courseWithDetails.id}
+            />
             <CategoryForm
               initialData={courseWithDetails}
               courseId={courseWithDetails.id}
-              options={categories.map((category) => ({
+              options={(categories as any[]).map((category) => ({
                 label: category.name,
                 value: category.id,
               }))}
@@ -127,7 +213,10 @@ export default async function CourseIDPage({
                 <IconBadge icon={ListCheck} />
                 <h2 className="text-xl">Course Chapter</h2>
               </div>
-              <ChapterForm initialData={courseWithDetails} courseId={courseWithDetails.id} />
+              <ChapterForm
+                initialData={courseWithDetails}
+                courseId={courseWithDetails.id}
+              />
             </div>
             {/* <div>
               <div className="flex items-center gap-x-2">
@@ -141,7 +230,10 @@ export default async function CourseIDPage({
                 <IconBadge icon={File} />
                 <h2 className="text-xl">Resources & Attachments</h2>
               </div>
-              <AttachmentForm initialData={courseWithDetails} courseId={courseWithDetails.id} />
+              <AttachmentForm
+                initialData={courseWithDetails}
+                courseId={courseWithDetails.id}
+              />
             </div>
           </div>
         </div>
