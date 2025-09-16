@@ -53,7 +53,7 @@ export async function GET(req: Request) {
     const { data: userProgressData, count: totalUserProgress } = await userProgressQuery;
 
     const completedUserProgress = userProgressData?.filter(p => p.isCompleted).length || 0;
-    const avgCompletionPercentage = totalUserProgress > 0 ? (completedUserProgress / totalUserProgress) * 100 : 0;
+    const avgCompletionPercentage = (totalUserProgress !== null && totalUserProgress > 0) ? (completedUserProgress / totalUserProgress) * 100 : 0;
 
     // Trend data (new in the specified range)
     let newTeachersQuery = supabase.from('User').select('id', { count: 'exact' }).eq('role', 'TEACHER');
@@ -71,8 +71,18 @@ export async function GET(req: Request) {
     const avgTimeToCompletion = "30 days";
 
     // Calculate percentage change for trends. Avoid division by zero.
-    const teacherTrend = totalTeachers && totalTeachers > 0 ? Math.round((newTeachers / (totalTeachers - newTeachers)) * 100) : 0;
-    const courseTrend = activeCourses && activeCourses > 0 ? Math.round((newCourses / (activeCourses - newCourses)) * 100) : 0;
+    const actualNewTeachers = newTeachers ?? 0;
+    const actualTotalTeachers = totalTeachers ?? 0;
+    const denominator = actualTotalTeachers - actualNewTeachers;
+    const teacherTrend = (actualTotalTeachers > 0 && denominator > 0)
+      ? Math.round((actualNewTeachers / denominator) * 100)
+      : 0;
+    const actualNewCourses = newCourses ?? 0;
+    const actualActiveCourses = activeCourses ?? 0;
+    const courseDenominator = actualActiveCourses - actualNewCourses;
+    const courseTrend = (actualActiveCourses > 0 && courseDenominator > 0)
+      ? Math.round((actualNewCourses / courseDenominator) * 100)
+      : 0;
 
     return NextResponse.json({
       totalTeachers,
