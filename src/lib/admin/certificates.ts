@@ -30,9 +30,7 @@ export async function getCertificates(params: CertQueryParams) {
       `
       id,
       issuedAt,
-      fileUrl,
       status,
-      issuedBy,
       userId,
       courseId,
       User (id, email),
@@ -76,9 +74,7 @@ export async function getCertificates(params: CertQueryParams) {
     courseId: cert.courseId, // Use courseId directly
     courseTitle: cert.Course?.title || 'N/A', // Use optional chaining
     issuedAt: cert.issuedAt,
-    fileUrl: cert.fileUrl,
     status: cert.status,
-    issuedBy: cert.issuedBy,
   }));
 
   const totalCount = count || 0;
