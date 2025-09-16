@@ -20,8 +20,8 @@ type QuizRow = {
   course_id?: string | null;
 };
 
-export async function POST(req: Request, { params }: { params: { quizId: string } }) {
-  const { userId } = auth();
+export async function POST(req: Request, context: any) { // Using any for context
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: any = {};
@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: { quizId: string 
   const { data: quizData, error: quizErr } = await supabase
     .from("quizzes")
     .select("id, passing_percent, attempts_allowed, course_id")
-    .eq("id", params.quizId)
+    .eq("id", context.params.quizId) // Corrected access to quizId
     .single();
 
   if (quizErr || !quizData) {
@@ -49,7 +49,7 @@ export async function POST(req: Request, { params }: { params: { quizId: string 
   const attemptsCountResp = await (supabase as any)
     .from("quiz_attempts")
     .select("id", { count: "exact" })
-    .eq("quiz_id", params.quizId)
+    .eq("quiz_id", context.params.quizId) // Corrected access to quizId
     .eq("user_id", userId);
   const attemptsSoFar = (attemptsCountResp?.count ?? 0) as number;
   const allowed = quiz.attempts_allowed ?? 1;
@@ -63,7 +63,7 @@ export async function POST(req: Request, { params }: { params: { quizId: string 
   const { data: questionsData, error: qqErr } = await supabase
     .from("quiz_questions")
     .select("id, correct, points")
-    .eq("quiz_id", params.quizId);
+    .eq("quiz_id", context.params.quizId); // Corrected access to quizId
 
   if (qqErr) {
     console.error("Questions fetch error:", qqErr);
@@ -93,7 +93,7 @@ export async function POST(req: Request, { params }: { params: { quizId: string 
   // 5) persist attempt
   const insertPayload = {
     user_id: userId,
-    quiz_id: params.quizId,
+    quiz_id: context.params.quizId, // Corrected access to quizId
     score: scorePercent,
     correct_count: correctCount,
     total_questions: totalQuestions,
