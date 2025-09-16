@@ -1,7 +1,8 @@
 // src/app/api/teacher/quizzes/route.ts
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { getSupabaseClient, Database } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
+import { Database } from "@/lib/database.types"; // Corrected import path for Database
 
 export async function GET() {
   const user = await currentUser();
@@ -21,7 +22,7 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch enrollments" }, { status: 500 });
   }
 
-  const courseIds = (enrollRows ?? []).map((r) => r.course_id);
+  const courseIds = (enrollRows ?? []).map((r) => r.course_id).filter(Boolean) as string[];
   if (courseIds.length === 0) {
     return NextResponse.json([]);
   }
@@ -54,8 +55,8 @@ export async function GET() {
     // non-fatal, continue with empty attempts
   }
 
-  const attemptsByQuiz = (attemptsRows ?? []).reduce<Record<string, Database["public"]["Tables"]["quiz_attempts"]["Row"][]>>((acc, a) => {
-    (acc[a.quiz_id] ||= []).push(a);
+  const attemptsByQuiz = (attemptsRows ?? []).filter(a => a.quiz_id !== null).reduce<Record<string, Database["public"]["Tables"]["quiz_attempts"]["Row"][]>>((acc, a) => {
+    (acc[a.quiz_id as string] ||= []).push(a);
     return acc;
   }, {});
 
