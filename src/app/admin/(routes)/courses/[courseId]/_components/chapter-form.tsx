@@ -1,19 +1,13 @@
-type Chapter = {
-  id: string;
-  title: string;
-  description?: string;
-  position: number;
-};
-
 type Course = {
   id: string;
   title: string;
   price: number;
   isPublished: boolean;
-  chapter: Chapter[];
+  chapter: ChapterWithAllDetails[];
 };
 
 "use client";
+import { ChapterWithAllDetails } from "@/lib/teacher";
 import * as z from "zod";
 import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,7 +35,7 @@ const formSchema = z.object({
 });
 
 interface ChapterFormProps {
-  initialData: Course & { chapter: Chapter[] };
+  initialData: Course & { chapter: ChapterWithAllDetails[] };
   courseId: string;
 }
 export const ChapterForm = ({ initialData, courseId }: ChapterFormProps) => {
