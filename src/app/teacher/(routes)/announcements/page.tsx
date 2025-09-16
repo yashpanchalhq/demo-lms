@@ -56,6 +56,11 @@ function AnnouncementCard({ item, onEdit, onDelete }: any) {
   );
 }
 
+interface AnnouncementItem {
+  id: string;
+  // Add other properties if needed, e.g., title: string; body: string;
+}
+
 export default function TeacherAnnouncements() {
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<any[]>([]);
@@ -160,7 +165,7 @@ export default function TeacherAnnouncements() {
               key={a.id}
               item={a}
               onEdit={() => {}}
-              onDelete={async (it) => {
+              onDelete={async (it: AnnouncementItem) => {
                 if (!confirm("Delete announcement?")) return;
                 const res = await fetch(`/api/teacher/announcements/${it.id}`, {
                   method: "DELETE",
