@@ -4,10 +4,10 @@ import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(
   req: Request,
-  { params }: { params: { quizId: string; attemptId: string } }
+  context: any // Using any as a temporary workaround
 ) {
-  const { quizId, attemptId } = params;
-  const { userId } = auth();
+  const { quizId, attemptId } = context.params; // Corrected access to quizId and attemptId
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
