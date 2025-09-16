@@ -1,7 +1,7 @@
 type Course = {
   id: string;
   title: string;
-  price: number;
+  price: number | null;
   isPublished: boolean;
 };
 
