@@ -99,8 +99,8 @@ export default function TeacherSchedulePage() {
         <DnDCalendar
           localizer={localizer}
           events={events}
-          startAccessor="start"
-          endAccessor="end"
+          startAccessor={"start" as any}
+          endAccessor={"end" as any}
           style={{ height: 700 }}
           selectable
           resizable
