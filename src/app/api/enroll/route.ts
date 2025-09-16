@@ -1,8 +1,8 @@
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { userId: clerkUserId } = getAuth(req);
 
