@@ -3,11 +3,13 @@ import { currentUser } from "@clerk/nextjs/server";
 import { getInProgressModules } from "@/lib/teacher";
 import InProgressList from "./_components/InProgressList";
 
+interface InProgressPageProps {
+  searchParams?: { page?: string; q?: string; courseId?: string } & Promise<any>;
+}
+
 export default async function InProgressPage({
   searchParams,
-}: {
-  searchParams?: { page?: string; q?: string; courseId?: string };
-}) {
+}: InProgressPageProps) {
   const user = await currentUser();
   if (!user?.id) {
     return (
