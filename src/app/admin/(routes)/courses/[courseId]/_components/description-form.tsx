@@ -17,7 +17,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Course } from "@prisma/client";
+import { Course } from "@/lib/teacher";
 
 const formSchema = z.object({
   description: z.string().min(1, {
