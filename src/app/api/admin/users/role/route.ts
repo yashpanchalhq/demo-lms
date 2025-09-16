@@ -71,7 +71,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const user = await clerkClient.users.updateUser(targetUserId, {
+    const clerk = await clerkClient();
+    const user = await clerk.users.updateUser(targetUserId, {
       publicMetadata: {
         role: role,
       },
