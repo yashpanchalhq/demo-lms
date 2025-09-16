@@ -5,11 +5,11 @@ import { getCourseWithModules } from "@/lib/teacher";
 
 export async function GET(
   request: Request,
-  { params }: { params: { courseId: string } }
+  context: any // Using any as a temporary workaround
 ) {
   try {
     const { userId } = await auth();
-    const { courseId } = await params;
+    const { courseId } = context.params; // Corrected access to courseId
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
