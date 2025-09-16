@@ -1,20 +1,41 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import QuizzesList, { QuizItem } from "./_components/quizzes-list";
 
-async function QuizzesPage() {
-  let quizzes: QuizItem[] = [];
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/teacher/quizzes`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) {
-      throw new Error("Failed to fetch quizzes");
-    }
-    quizzes = await res.json();
-  } catch (error) {
-    console.error("Error fetching quizzes:", error);
-    // Optionally, handle the error more gracefully in the UI
+function QuizzesPage() {
+  const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL}/api/teacher/quizzes`
+        );
+        if (!res.ok) {
+          throw new Error("Failed to fetch quizzes");
+        }
+        const data = await res.json();
+        setQuizzes(data);
+      } catch (err: any) {
+        console.error("Error fetching quizzes:", err);
+        setError(err.message || "Failed to load quizzes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6">Loading quizzes...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500">Error: {error}</div>;
   }
 
   return (
