@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     const internalUserId = user.id; // This is the internal Supabase user ID
 
     const { data: enrollments, error: enrollmentsError } = await supabase
-      .from('enrollments')
+      .from('Enrollment')
       .select('course_id')
       .eq('user_id', internalUserId); // <--- Use internalUserId here
 

@@ -50,7 +50,7 @@ export async function getEnrolledCourses(userId: string) {
 
   // 3. Get enrollments and join Course and Chapters
   const { data: enrollments, error } = await supabase
-    .from("enrollments")
+    .from("Enrollment")
     .select(`
       *,
       course:Course (
@@ -378,7 +378,7 @@ export async function getInProgressModules(
 
   // 2. Get all courses the user is enrolled in.
   const { data: enrollments, error: enrollmentsError } = await supabase
-    .from("enrollments")
+    .from("Enrollment")
     .select("courseId")
     .eq("userId", internalUserId)
     .returns<EnrollmentCourseIdSelect[]>();

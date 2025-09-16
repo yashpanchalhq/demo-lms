@@ -10,7 +10,7 @@ export async function GET() {
 
   // 1) fetch course ids the user is enrolled in
   const { data: enrolls } = await supabase
-    .from("enrollments")
+    .from("Enrollment")
     .select("course_id")
     .eq("user_id", userId);
 

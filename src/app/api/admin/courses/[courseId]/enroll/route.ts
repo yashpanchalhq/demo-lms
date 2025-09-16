@@ -63,7 +63,7 @@ export async function POST(
 
     // Check if already enrolled
     const { data: existingEnrollment, error: existingEnrollmentError } = await supabase
-      .from('enrollments')
+      .from('Enrollment')
       .select('id')
       .eq('user_id', teacherId)
       .eq('course_id', courseId)
@@ -80,7 +80,7 @@ export async function POST(
 
     // Enroll the teacher by admin
     const { data: enrollment, error: enrollError } = await supabase
-      .from('enrollments')
+      .from('Enrollment')
       .insert([
         {
           user_id: teacherId,

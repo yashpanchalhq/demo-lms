@@ -210,7 +210,7 @@ export async function POST(req: Request) {
   try {
     // use upsert with onConflict to avoid duplicate errors
     const { data, error } = await (supabase as any)
-      .from("enrollments")
+      .from("Enrollment")
       .upsert([payload], { onConflict: "user_id,course_id" })
       .select();
 

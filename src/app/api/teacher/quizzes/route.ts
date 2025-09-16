@@ -12,7 +12,7 @@ export async function GET() {
 
   // 1) find courses user is enrolled in
   const { data: enrollRows, error: enrollErr } = await supabase
-    .from("enrollments")
+    .from("Enrollment")
     .select("course_id")
     .eq("user_id", user.id)
     .returns<Database["public"]["Tables"]["enrollments"]["Row"][]>();

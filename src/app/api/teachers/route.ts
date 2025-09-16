@@ -37,7 +37,13 @@ export async function GET(req: Request) {
         email,
         role,
         createdAt,
-        enrollments(course_id),
+        enrollments:Enrollment!userId(
+          id,
+          courseId,
+          createdAt,
+          updatedAt,
+          status
+        ),
         UserProgress(updatedAt),
         Certificate(id)
       `, { count: 'exact' })
@@ -106,10 +112,13 @@ export async function GET(req: Request) {
       }
       if (teacher.enrollments && teacher.enrollments.length > 0) {
         const latestEnrollment = teacher.enrollments.reduce((latest: any, current: any) => {
-          return new Date(current.enrolled_at) > new Date(latest.enrolled_at) ? current : latest;
+          const latestDate = new Date(latest?.updatedAt || latest?.createdAt || 0);
+          const currentDate = new Date(current?.updatedAt || current?.createdAt || 0);
+          return currentDate > latestDate ? current : latest;
         });
-        if (new Date(latestEnrollment.enrolled_at) > lastActivityDate) {
-          lastActivityDate = new Date(latestEnrollment.enrolled_at);
+        const latestEnrollmentDate = new Date(latestEnrollment?.updatedAt || latestEnrollment?.createdAt || 0);
+        if (latestEnrollmentDate > lastActivityDate) {
+          lastActivityDate = latestEnrollmentDate;
         }
       }
 

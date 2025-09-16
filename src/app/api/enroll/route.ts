@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     // Check if enrollment already exists
     const { data: existingEnrollment, error: existingEnrollmentError } = await supabase
-      .from("enrollments")
+      .from("Enrollment")
       .select("id")
       .eq("user_id", internalUserId)
       .eq("course_id", courseId)
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // Insert new enrollment
     const { data: enrollment, error } = await supabase
-      .from("enrollments")
+      .from("Enrollment")
       .insert([
         { user_id: internalUserId, course_id: courseId }
       ])
