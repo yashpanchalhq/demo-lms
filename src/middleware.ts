@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
+const isTeacherRoute = createRouteMatcher(["/teacher(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   // If the route is public, anyone can access it.
@@ -35,7 +36,16 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  // Authenticated users can access all other non-public, non-admin routes (e.g., /teacher)
+  // Prevent admins from accessing teacher routes
+  if (isTeacherRoute(req)) {
+    if (sessionClaims?.metadata?.role === "admin") {
+      // Redirect admins away from teacher routes to the admin dashboard
+      const url = new URL("/admin", req.url);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Authenticated users can access all other non-public, non-admin, non-teacher routes
   return NextResponse.next();
 });
 
