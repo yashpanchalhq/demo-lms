@@ -1,5 +1,5 @@
 "use client";
-import { Chapter } from "@prisma/client";
+import { Chapter, ChapterWithAllDetails } from "@/lib/teacher";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -14,7 +14,7 @@ import { Grip, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ChapterListProps {
-  items: Chapter[];
+  items: ChapterWithAllDetails[];
   onReorder: (updateData: { id: string; position: number }[]) => void;
   onEdit: (id: string) => void;
 }
@@ -74,13 +74,15 @@ export default function ChapterList({
                 >
                   {(provided) => (
                     <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={provided.draggableProps.style as React.CSSProperties}
                       className={cn(
                         "flex items-center gap-x-2 bg-slate-200 dark:bg-slate-700 border-slate-200 dark:border-slate-700 border text-slate-700 dark:text-slate-200 rounded-md mb-4 text-sm",
                         chapter.isPublished &&
                           "bg-sky-100 dark:bg-sky-900 border-sky-200 dark:border-sky-700 text-sky-700 dark:text-sky-300"
                       )}
                       ref={provided.innerRef}
-                      {...provided.draggableProps}
                     >
                       <div
                         className={cn(
