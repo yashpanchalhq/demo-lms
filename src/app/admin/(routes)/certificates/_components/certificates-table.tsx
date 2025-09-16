@@ -108,19 +108,19 @@ const columns: ColumnDef<Certificate>[] = [
       };
 
       const handleReissue = () => {
-        toast.info("Reissue functionality not implemented.");
+        toast("Reissue functionality not implemented.");
       };
 
       const handleRevoke = () => {
-        toast.info("Revoke functionality not implemented.");
+        toast("Revoke functionality not implemented.");
       };
 
       const handleResend = () => {
-        toast.info("Resend email functionality not implemented.");
+        toast("Resend email functionality not implemented.");
       };
 
       const handleViewAudit = () => {
-        toast.info("View audit functionality not implemented.");
+        toast("View audit functionality not implemented.");
       };
 
       return (
@@ -156,9 +156,13 @@ const columns: ColumnDef<Certificate>[] = [
   },
 ];
 
-export function CertificatesTable<TData, TValue>({
+interface CertificatesTableProps {
+  data: Certificate[];
+}
+
+export function CertificatesTable({
   data,
-}: ReportsTableProps<TData, TValue>) {
+}: CertificatesTableProps) {
   const table = useReactTable({
     data,
     columns,
