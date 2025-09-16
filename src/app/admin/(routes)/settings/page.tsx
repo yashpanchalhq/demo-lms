@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import React from "react";
 import { SettingsHeader } from "./_components/settings-header";
 import { OrganizationCard } from "./_components/organization-card";
@@ -49,13 +49,37 @@ const SettingsPage = async () => {
   // Fetch current admins
   const { data: admins, error: adminsError } = await supabase
     .from("User")
-    .select("id, email, role")
+    .select("id, clerkId, email, role") // Select clerkId as well
     .eq("role", "ADMIN");
 
   if (adminsError) {
     console.error("Error fetching admins:", adminsError);
     // Handle error appropriately
   }
+
+  const currentAdmins = await Promise.all(
+    (admins || []).map(async (admin) => {
+      try {
+        const clerk = await clerkClient();
+        const clerkUser = await clerk.users.getUser(admin.clerkId);
+        const name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim();
+        return {
+          id: admin.id,
+          name: name || admin.email, // Use email if name is empty
+          email: admin.email,
+          role: admin.role,
+        };
+      } catch (clerkError) {
+        console.error(`Error fetching Clerk user for ${admin.clerkId}:`, clerkError);
+        return {
+          id: admin.id,
+          name: admin.email, // Fallback to email if Clerk user cannot be fetched
+          email: admin.email,
+          role: admin.role,
+        };
+      }
+    })
+  );
 
   // Merge fetched settings with default values to ensure all properties exist
   const settings = {
@@ -79,7 +103,7 @@ const SettingsPage = async () => {
     enableEmailReminders: fetchedConfig.enableEmailReminders ?? true,
     emailProvider: fetchedConfig.emailProvider || "None",
     storageProvider: fetchedConfig.storageProvider || "UploadThing",
-    currentAdmins: admins || [],
+    currentAdmins: currentAdmins,
   };
 
   return (
