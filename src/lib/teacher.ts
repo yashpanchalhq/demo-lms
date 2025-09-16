@@ -1,11 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./supabase";
 import { getSupabaseClient } from "./supabase";
-
-type Course = Database["public"]["Tables"]["Course"]["Row"];
-type Chapter = Database["public"]["Tables"]["Chapter"]["Row"];
+export type Course = Database["public"]["Tables"]["Course"]["Row"];
+export type Chapter = Database["public"]["Tables"]["Chapter"]["Row"];
+export type ChapterWithAllDetails = Chapter & {
+  description: string | null;
+  videoUrl: string | null;
+  position: number;
+  isPublished: boolean;
+  isFree: boolean;
+  courseId: string;
+  createdAt: string;
+  updatedAt: string;
+};
 type User = Database["public"]["Tables"]["User"]["Row"];
 type ChapterIdSelect = { id: string };
+type UserProgressChapterIdSelect = { chapterId: string };
 type EnrollmentCourseIdSelect = { courseId: string };
 type CourseChapterSelect = Chapter & {
   course: {
@@ -446,7 +456,6 @@ export async function getAnnouncementViewReport() {
       count(id)
       `
     )
-    .group("announcement_id, announcements.title")
     .order("count", { ascending: false });
 
   if (error) {
