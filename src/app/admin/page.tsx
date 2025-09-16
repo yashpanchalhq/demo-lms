@@ -2,16 +2,17 @@ import { ChartAreaInteractive } from "@/app/admin/_components/chart-area-interac
 import { DataTable } from "@/app/admin/_components/data-table";
 import { SectionCards } from "@/app/admin/_components/section-cards";
 import { getSupabaseClient } from "@/lib/supabase";
+import { Json } from "@/lib/database.types";
 
 // Define the expected shape of an entry in the ActivityLog table.
 // Note: This is an assumption based on common table structures for activity logs.
 // If your table has different columns, you'll need to adjust this interface.
 interface ActivityLog {
-  id: number;
+  id: string;
   action: string;
-  targetId: string | null;
+  details: { targetId?: string } | null;
   createdAt: string;
-  userId: string | null;
+  userId: string;
 }
 
 async function getDashboardData() {
@@ -38,7 +39,7 @@ async function getDashboardData() {
     header: log.action, // e.g., "COURSE_CREATED"
     type: log.action.split('_')[0], // e.g., "COURSE"
     status: 'Completed', // Assuming logged activities are completed
-    target: log.targetId || 'N/A', // The ID of the entity that was acted upon
+    target: log.details?.targetId || 'N/A', // Assuming targetId is in details
     limit: new Date(log.createdAt).toLocaleDateString(), // The date of the activity
     reviewer: log.userId || 'System', // The user who performed the action
   }));
