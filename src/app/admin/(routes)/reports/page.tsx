@@ -13,9 +13,7 @@ import { ReportsActions } from "./_components/reports-actions";
 
 export const dynamic = "force-dynamic"; // Force dynamic rendering
 
-const ReportsPage = async ({
-  searchParams,
-}: {
+interface ReportsPageProps {
   searchParams: {
     timeRange?: string;
     startDate?: string;
@@ -24,8 +22,12 @@ const ReportsPage = async ({
     teacherId?: string;
     status?: string;
     groupBy?: string;
-  };
-}) => {
+  } & Promise<any>;
+}
+
+const ReportsPage = async ({
+  searchParams,
+}: ReportsPageProps) => {
   const user = await currentUser();
   const userId = user?.id;
 
