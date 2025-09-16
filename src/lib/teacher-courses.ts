@@ -1,6 +1,6 @@
 
 import { getSupabaseClient } from "./supabase";
-import { Course, Module } from "@prisma/client";
+
 
 const supabase = getSupabaseClient();
 
