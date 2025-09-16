@@ -1,8 +1,8 @@
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const supabase = getSupabaseClient();
     const { data: courses, error } = await supabase.from('Course').select('*');
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request){
+export async function POST(req: NextRequest){
     try {
         const { userId } = getAuth(req);
         const { title } = await req.json();
