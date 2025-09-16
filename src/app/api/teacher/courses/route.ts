@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Internal Error", { status: 500 });
     }
 
-    const courseIds = enrollments.map((enrollment) => enrollment.course_id);
+    const courseIds = enrollments.map((enrollment) => enrollment.course_id).filter(Boolean) as string[];
 
     if (courseIds.length === 0) {
       return NextResponse.json([]);
