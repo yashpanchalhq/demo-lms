@@ -6,7 +6,7 @@ import { File, Loader2, PlusCircle, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Course } from "@prisma/client";
+import { Course } from "@/lib/teacher";
 import { FileUpload } from "@/components/file-upload";
 
 // Define the Attachment type if not imported from elsewhere
@@ -86,7 +86,7 @@ export const AttachmentForm = ({
             )}
             {initialData.attachments.length > 0 && (
               <div className="space-y-2">
-                {initialData.attachments.map((attachment) => (
+                {initialData.attachments.map((attachment: Attachment) => (
                   <div
                     key={attachment.id}
                     className="flex items-center p-3 w-full bg-sky-100 dark:bg-sky-900 border-sky-200 dark:border-sky-700 border text-sky-700 dark:text-sky-300 rounded-md"
