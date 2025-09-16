@@ -17,17 +17,17 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Chapter } from "@prisma/client";
+import { Chapter, ChapterWithAllDetails } from "@/lib/teacher";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ChapterAccessFormProps {
-  initialData: Chapter;
+  initialData: ChapterWithAllDetails;
   courseId: string;
   chapterId: string;
 }
 
 const formSchema = z.object({
-  isFree: z.boolean().default(false),
+  isFree: z.boolean(),
 });
 
 export const ChapterAccessForm = ({
@@ -43,7 +43,7 @@ export const ChapterAccessForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      isFree: Boolean(initialData.isFree),
+      isFree: initialData.isFree,
     },
   });
 
