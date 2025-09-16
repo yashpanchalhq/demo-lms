@@ -1,9 +1,9 @@
 
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { userId: clerkUserId } = getAuth(req);
 
@@ -42,7 +42,9 @@ export async function POST(req: Request) {
       return new NextResponse("Internal Error", { status: 500 });
     }
 
-    const updatedConfig = { ...currentSettings.config, logoUrl: logoUrl };
+                const updatedConfig = typeof currentSettings.config === 'object' && currentSettings.config !== null
+      ? { ...currentSettings.config, logoUrl: logoUrl }
+      : { logoUrl: logoUrl };
 
     const { data: updatedSettings, error: updateError } = await supabase
       .from('Settings')
