@@ -4,12 +4,11 @@ import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(
   req: NextRequest,
-  context: { params: { courseId: string } }
+  context: any
 ) {
-    const { courseId } = context.params;
+  const { courseId } = context.params;
   try {
     const { userId } = getAuth(req); // This is the admin's userId
-    const { courseId } = params;
     const { teacherId } = await req.json(); // The teacher to be enrolled
 
     if (!userId) {
