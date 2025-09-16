@@ -1,4 +1,5 @@
 import { IconBadge } from "@/components/icon-badge";
+
 import { getSupabaseClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { ArrowLeft, Eye, LayoutDashboard, Video } from "lucide-react";
@@ -12,14 +13,7 @@ import { ChapterVideoForm } from "../_components/chapter-video-form";
 import { Banner } from "@/components/banner";
 import { ChapterAction } from "../_components/chapter-action";
 
-type Chapter = {
-  id: string;
-  courseId: string;
-  title: string;
-  description: string | null;
-  videoUrl: string | null;
-  isPublished: boolean;
-};
+import { ChapterWithAllDetails } from "@/lib/teacher";
 
 type MuxData = {
   id: string;
@@ -32,7 +26,7 @@ interface ChapterIdPageProps {
   params: {
     courseId: string;
     chapterId: string;
-  };
+  } & Promise<any>;
 }
 
 const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
@@ -50,7 +44,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
     .select("*")
     .eq("id", chapterId)
     .eq("courseId", courseId)
-    .single()) as { data: Chapter | null; error: any };
+    .single()) as { data: ChapterWithAllDetails | null; error: any };
 
   if (chapterError || !chapter) {
     return redirect("/");
@@ -63,7 +57,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
     .single()) as { data: MuxData | null; error: any };
 
   const chapterWithMuxData = {
-    ...(chapter as Chapter),
+    ...(chapter as ChapterWithAllDetails),
     muxData: muxData as MuxData | null,
   };
 
