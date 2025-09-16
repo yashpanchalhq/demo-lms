@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: any
 ) {
   try {
     const supabase = getSupabaseClient();
-    const teacherId = params.id;
+    const teacherId = context.params.id;
 
     // Fetch teacher details
     const { data: teacher, error: teacherError } = await supabase
