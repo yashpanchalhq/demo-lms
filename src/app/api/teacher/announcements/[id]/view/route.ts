@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = auth();
+export async function POST(req: NextRequest, context: any) {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
-    .from("announcement_views")
-    .insert([{ announcement_id: params.id, user_id: userId }])
+    .from("announcement_views" as any)
+    .insert([{ announcement_id: context.params.id, user_id: userId }])
     .select()
     .single();
 
