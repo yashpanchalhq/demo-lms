@@ -7,7 +7,13 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
-import { Chapter, MuxData } from "@prisma/client";
+import { Chapter } from "@/lib/teacher";
+
+interface MuxData {
+  id: string;
+  assetId: string;
+  playbackId: string | null;
+}
 // import MuxPlayer from "@mux/mux-player-react";
 import { FileUpload } from "@/components/file-upload";
 import NextVideo from "next-video";
