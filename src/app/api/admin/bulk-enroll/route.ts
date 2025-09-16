@@ -1,9 +1,9 @@
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 import { checkRole } from "@/utils/roles";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { userId: clerkUserId } = getAuth(req);
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const { enrollments: enrollmentData } = await req.json();
+    const { enrollments: enrollmentData }: { enrollments: { teacherClerkId: string, courseId: string }[] } = await req.json();
 
     if (!Array.isArray(enrollmentData) || enrollmentData.length === 0) {
       return new NextResponse("Invalid or empty enrollment data", { status: 400 });
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     const successfulEnrollments: any[] = [];
     const failedEnrollments: any[] = [];
 
-    for (const entry of enrollmentData) {
+    for (const entry of enrollmentData as { teacherClerkId: string, courseId: string }[]) {
       const { teacherClerkId, courseId } = entry;
 
       if (!teacherClerkId || !courseId) {
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         .from("User")
         .select("id")
         .eq("clerkId", teacherClerkId)
-        .single();
+        .single<{ id: string }>();
 
       if (teacherUserError || !teacherUser) {
         failedEnrollments.push({ ...entry, reason: "Teacher user not found" });
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       const { data: enrollment, error } = await supabase
         .from("enrollments")
         .insert([
-          { userId: internalTeacherId, courseId: courseId }
+          { user_id: internalTeacherId, course_id: courseId }
         ])
         .select()
         .single();
