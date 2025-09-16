@@ -1,11 +1,11 @@
 
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(
-  req: Request,
-  { params }: { params: { courseId: string } }
+  req: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = getAuth(req);
@@ -20,7 +20,7 @@ export async function POST(
     const { data: courseOwner, error: courseError } = await supabase
       .from('Course')
       .select('id')
-      .eq('id', params.courseId)
+      .eq('id', context.params.courseId) // Use context.params.courseId
       .eq('userId', userId)
       .single();
 
@@ -31,7 +31,7 @@ export async function POST(
     const { data: lastChapter, error: lastChapterError } = await supabase
       .from('Chapter')
       .select('position')
-      .eq('courseId', params.courseId)
+      .eq('courseId', context.params.courseId)
       .order('position', { ascending: false })
       .limit(1)
       .single();
@@ -44,7 +44,7 @@ export async function POST(
         {
           title,
           description,
-          courseId: params.courseId,
+          courseId: context.params.courseId,
           position: newPosition,
         },
       ])
