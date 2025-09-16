@@ -1,15 +1,15 @@
 
 import { getAuth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export async function PATCH(
-  req: Request,
-  { params }: { params: { courseId: string; chapterId: string } }
+  req: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = getAuth(req);
-    const { courseId, chapterId } = params;
+    const { courseId, chapterId } = context.params;
     const values = await req.json();
 
     if (!userId) {
@@ -50,12 +50,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: { courseId: string; chapterId: string } }
+  req: NextRequest,
+  context: any
 ) {
   try {
     const { userId } = getAuth(req);
-    const { courseId, chapterId } = params;
+    const { courseId, chapterId } = context.params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
