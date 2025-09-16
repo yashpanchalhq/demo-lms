@@ -16,7 +16,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Course } from "@prisma/client";
+import { Course } from "@/lib/teacher";
 import { ComboBox } from "@/components/ui/combobox";
 
 const formSchema = z.object({
@@ -85,7 +85,8 @@ export const CategoryForm = ({
           <p
             className={cn(
               "text-sm mt-2 dark:text-slate-200",
-              !initialData.categoryId && "text-slate-50 italic dark:text-slate-400"
+              !initialData.categoryId &&
+                "text-slate-50 italic dark:text-slate-400"
             )}
           >
             {selectedOption?.label || "No category"}
