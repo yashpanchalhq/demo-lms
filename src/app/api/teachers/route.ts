@@ -42,9 +42,10 @@ export async function GET(req: Request) {
           courseId,
           createdAt,
           updatedAt,
-          status
+          status,
+          Course(title)
         ),
-        UserProgress(updatedAt),
+        UserProgress:UserProgress!UserProgress_user_id_fkey(updatedAt),
         Certificate(id)
       `, { count: 'exact' })
       .eq('role', 'TEACHER');
@@ -97,7 +98,7 @@ export async function GET(req: Request) {
     }
 
     const processedTeachers = validTeachers.map((teacher: any) => {
-      const assignedCoursesCount = teacher.enrollments?.length || 0;
+      const assignedCourses = teacher.enrollments?.map((e: any) => e.Course?.title).filter(Boolean) || [];
       const certificatesCount = teacher.Certificate?.length || 0;
 
       // Calculate last activity
@@ -128,7 +129,7 @@ export async function GET(req: Request) {
 
       return {
         ...teacher,
-        assignedCourses: assignedCoursesCount,
+        assignedCourses,
         progress: progress,
         lastActivity: lastActivityDate.toISOString(), // Keep ISO string for now, format in frontend
         certificates: certificatesCount,
