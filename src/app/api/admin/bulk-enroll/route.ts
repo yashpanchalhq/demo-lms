@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseClient();
 
     // Check if the requesting user is an admin
-    if (!checkRole("admin")) {
+    if (!await checkRole("ADMIN")) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
@@ -51,17 +51,11 @@ export async function POST(req: NextRequest) {
 
       // Check if enrollment already exists
       const { data: existingEnrollment, error: existingEnrollmentError } = await supabase
-        .from("Enrollment")
+        .from("course_enrollments")
         .select("id")
-        .eq("userId", internalTeacherId)
-        .eq("courseId", courseId)
+        .eq("user_id", internalTeacherId)
+        .eq("course_id", courseId)
         .single();
-
-      if (existingEnrollmentError && existingEnrollmentError.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error("[API_ADMIN_BULK_ENROLL_POST] Error checking existing enrollment:", existingEnrollmentError);
-        failedEnrollments.push({ ...entry, reason: "Error checking existing enrollment" });
-        continue;
-      }
 
       if (existingEnrollment) {
         failedEnrollments.push({ ...entry, reason: "Teacher already enrolled in this course" });
@@ -70,9 +64,9 @@ export async function POST(req: NextRequest) {
 
       // Insert new enrollment
       const { data: enrollment, error } = await supabase
-        .from("Enrollment")
+        .from("course_enrollments")
         .insert([
-          { userId: internalTeacherId, courseId }
+          { user_id: internalTeacherId, course_id: courseId }
         ])
         .select()
         .single();
