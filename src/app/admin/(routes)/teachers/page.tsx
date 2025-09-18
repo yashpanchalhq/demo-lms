@@ -7,7 +7,6 @@ import { columns, Teacher } from "./_components/column";
 import { TeacherHeader } from "./_components/teacher-header";
 import { TeacherFilters } from "./_components/teacher-filters";
 import { TeacherFooter } from "./_components/teacher-footer";
-import { BulkActions } from "./_components/bulk-actions";
 
 export const dynamic = "force-dynamic"; // Force dynamic rendering
 
@@ -134,9 +133,6 @@ const TeachersPage = async ({
       />
       <div className="mt-6">
         <TeacherFilters />
-      </div>
-      <div className="mt-6">
-        <BulkActions />
       </div>
       <div className="mt-6">
         {/* Use validTeachers instead of teachers */}

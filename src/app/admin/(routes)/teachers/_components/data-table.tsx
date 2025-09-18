@@ -10,6 +10,7 @@ import {
   getFilteredRowModel,
   SortingState,
   getSortedRowModel,
+  Row,
 } from "@tanstack/react-table";
 
 import {
@@ -20,10 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { BulkActions } from "./bulk-actions"; // Import BulkActions
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -35,9 +37,7 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
@@ -57,9 +57,15 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const [selectedRows, setSelectedRows] = useState<Row<TData>[]>([]);
+
+  useEffect(() => {
+    setSelectedRows(table.getSelectedRowModel().rows);
+  }, [rowSelection, table]);
+
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter emails..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
@@ -68,6 +74,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+        <BulkActions selectedRows={selectedRows} />
       </div>
       <div className="rounded-md border">
         <Table>
