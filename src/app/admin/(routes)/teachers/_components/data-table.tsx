@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { BulkActions } from "./bulk-actions"; // Import BulkActions
+import { Teacher } from "./column";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -74,7 +75,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
-        <BulkActions selectedRows={selectedRows} />
+        <BulkActions selectedRows={selectedRows as Row<Teacher>[]} />
       </div>
       <div className="rounded-md border">
         <Table>

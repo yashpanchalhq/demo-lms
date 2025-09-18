@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseClient();
 
     // Check if the requesting user is an admin
-    if (!await checkRole("ADMIN")) {
+    if (!await checkRole("admin")) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 

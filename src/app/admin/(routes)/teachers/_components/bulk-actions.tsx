@@ -24,11 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface BulkActionsProps {
-  selectedRows: Row<Teacher>[];
+interface BulkActionsProps<TData extends Teacher> {
+  selectedRows: Row<TData>[];
 }
 
-export const BulkActions = ({ selectedRows }: BulkActionsProps) => {
+export const BulkActions = <TData extends Teacher>({ selectedRows }: BulkActionsProps<TData>) => {
   const selectedCount = selectedRows.length;
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
