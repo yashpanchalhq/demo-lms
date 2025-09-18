@@ -102,11 +102,6 @@ export const columns: ColumnDef<Teacher>[] = [
       <div className="flex items-center gap-x-2">
         <span>
           {row.original.email}
-          {/* Show clerkId for debugging */}
-          <br />
-          <small className="text-muted-foreground">
-            Clerk ID: {row.original.clerkId || "Missing"}
-          </small>
         </span>
         <Button
           variant="ghost"
@@ -214,13 +209,13 @@ export const columns: ColumnDef<Teacher>[] = [
 
         try {
           console.log("🚀 Attempting to assign course:", {
-            teacherClerkId: teacher.clerkId,
+            // teacherClerkId: teacher.clerkId,
             courseId: selectedCourseId,
             teacherEmail: teacher.email,
           });
 
           const response = await axios.post("/api/admin/enrollments", {
-            teacherClerkId: teacher.clerkId,
+            // teacherClerkId: teacher.clerkId,
             courseId: selectedCourseId,
           });
 
@@ -282,6 +277,27 @@ export const columns: ColumnDef<Teacher>[] = [
         }
       };
 
+      const onResetProgress = async () => {
+        try {
+          await axios.post("/api/admin/teachers/reset-progress", { teacherId: teacher.id });
+          toast.success("Progress reset successfully!");
+          router.refresh();
+        } catch (error) {
+          toast.error("Failed to reset progress.");
+          console.error(error);
+        }
+      };
+
+      const onSendReminder = async () => {
+        try {
+          await axios.post("/api/admin/teachers/send-reminder", { teacherId: teacher.id });
+          toast.success("Reminder sent successfully!");
+        } catch (error) {
+          toast.error("Failed to send reminder.");
+          console.error(error);
+        }
+      };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -293,7 +309,7 @@ export const columns: ColumnDef<Teacher>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => console.log("View Profile", teacher.id)}
+              onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
             >
               View Profile
             </DropdownMenuItem>
@@ -352,9 +368,7 @@ export const columns: ColumnDef<Teacher>[] = [
               </DropdownMenuItem>
             )}
 
-            <DropdownMenuItem
-              onClick={() => console.log("Reset Progress", teacher.id)}
-            >
+            <DropdownMenuItem onClick={onResetProgress}>
               Reset Progress
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -398,9 +412,7 @@ export const columns: ColumnDef<Teacher>[] = [
               </AlertDialog>
             )}
 
-            <DropdownMenuItem
-              onClick={() => console.log("Send Reminder", teacher.id)}
-            >
+            <DropdownMenuItem onClick={onSendReminder}>
               Send Reminder
             </DropdownMenuItem>
           </DropdownMenuContent>
