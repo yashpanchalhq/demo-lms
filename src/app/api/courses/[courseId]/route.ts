@@ -5,11 +5,11 @@ import { getSupabaseClient } from "@/lib/supabase";
 
 export async function PATCH(
   req: NextRequest,
-  context: any
+  { params }: { params: { courseId: string } }
 ) {
   try {
     const { userId } = getAuth(req);
-    const { courseId } = context.params;
+    const { courseId } = params;
     const values = await req.json();
 
     if (!userId) {
@@ -39,11 +39,11 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  context: any
+  { params }: { params: { courseId: string } }
 ) {
   try {
     const { userId } = getAuth(req);
-    const { courseId } = context.params;
+    const { courseId } = params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });

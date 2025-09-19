@@ -40,25 +40,31 @@ export const ourFileRouter = {
       return { userId: session.user.id, courseId: input.courseId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      try {
-        const supabase = getSupabaseClient();
-        
-        // Fix: Use type assertion or explicit typing for the update
-        const { data, error } = await supabase
-          .from('Course')
-          .update({ imageUrl: file.url })
-          .eq('id', metadata.courseId);
+      for (let i = 0; i < 3; i++) {
+        try {
+          const supabase = getSupabaseClient();
+          
+          // Fix: Use type assertion or explicit typing for the update
+          const { data, error } = await supabase
+            .from('Course')
+            .update({ imageUrl: file.ufsUrl })
+            .eq('id', metadata.courseId);
 
-        if (error) {
-          console.error("Error updating course image:", error);
-          throw new Error("Failed to update course image");
+          if (error) {
+            console.error("Error updating course image:", error);
+            throw new Error("Failed to update course image");
+          }
+
+          console.log("Course image updated successfully", data);
+          return { uploadedBy: metadata.userId };
+        } catch (error) {
+          console.error(`Upload complete error (attempt ${i + 1}):`, error);
+          if (i < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            throw error;
+          }
         }
-
-        console.log("Course image updated successfully", data);
-        return { uploadedBy: metadata.userId };
-      } catch (error) {
-        console.error("Upload complete error:", error);
-        throw error;
       }
     }),
 } satisfies FileRouter;
